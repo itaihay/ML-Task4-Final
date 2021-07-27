@@ -30,17 +30,17 @@ for dataset_name in os.listdir(DATASETS_PATH):
     X, y, encoder_y = utils.preprocess_data(df)
 
     curr_fold = 0
-    kf = StratifiedKFold(n_splits=2, random_state=10, shuffle=True)
-    for train_index, test_index in [(1,1)]:#kf.split(X, y):
-        X_train, X_test = X,X#X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y,y#y[train_index], y[test_index]
+    kf = StratifiedKFold(n_splits=10, random_state=10, shuffle=True)
+    for train_index, test_index in kf.split(X, y):
+        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+        y_train, y_test = y[train_index], y[test_index]
 
         rf_clf = RandomForestClassifier()
 
         rs = RandomizedSearchCV(estimator=rf_clf,
                                 param_distributions=RANDOM_GRID,
-                                n_iter=1,
-                                cv=2,
+                                n_iter=18,
+                                cv=3,
                                 verbose=2,
                                 random_state=42,
                                 n_jobs=-1)
