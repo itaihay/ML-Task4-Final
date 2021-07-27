@@ -6,10 +6,13 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, precision_recall_fscore_support
-from sklearn.model_selection import KFold, RandomizedSearchCV
+from sklearn.model_selection import KFold, RandomizedSearchCV, StratifiedKFold
 from sklearn.preprocessing import OneHotEncoder
 
 import utils
+
+SCORES_COLUMNS = ['dataset_name', 'model', 'fold_n', 'best_params', 'accuracy', 'tpr', 'fpr', 'precision', 'auc-roc',
+                 'auc-pr', 'fit_time_second', '1000_predict_time_seconds']
 
 DATASETS_PATH = './classification_datasets'
 
@@ -27,10 +30,10 @@ for dataset_name in os.listdir(DATASETS_PATH):
     X, y, encoder_y = utils.preprocess_data(df)
 
     curr_fold = 0
-    kf = KFold(n_splits=2, random_state=10, shuffle=True)
-    for train_index, test_index in kf.split(X):
-        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y[train_index], y[test_index]
+    kf = StratifiedKFold(n_splits=2, random_state=10, shuffle=True)
+    for train_index, test_index in [(1,1)]:#kf.split(X, y):
+        X_train, X_test = X,X#X.iloc[train_index], X.iloc[test_index]
+        y_train, y_test = y,y#y[train_index], y[test_index]
 
         rf_clf = RandomForestClassifier()
 
@@ -50,14 +53,14 @@ for dataset_name in os.listdir(DATASETS_PATH):
         y_pred = rs.best_estimator_.predict(X_test)
         y_prob = rs.best_estimator_.predict_proba(X_test)
         accuracy = accuracy_score(y_test, y_pred)
-        precision, recall, _, _ = precision_recall_fscore_support(y_test, y_pred)
+        precision, recall, _, _ = precision_recall_fscore_support(y_test, y_pred, warn_for=('precision', 'recall'))
 
         if len(enc.get_feature_names()) <= 2:
             auc = roc_auc_score(y_test, y_prob[:, 1])
             fpr, tpr, _ = roc_curve(y_test, y_prob[:, 1])
             auc_pr_score = metrics.auc(recall, precision)
         else:
-            auc = roc_auc_score(y_test, y_prob, multi_class='ovr', average='macro')
+            auc = roc_auc_score(y_test, y_prob, multi_class='ovo', average='macro')
             fpr, tpr, _ = roc_curve(enc.transform(y_test.reshape(-1, 1)).toarray().ravel(), y_prob.ravel())
             auc_pr_score = utils.auc_pr(enc.transform(y_test.reshape(-1, 1)).toarray(), y_prob, len(enc.categories_))
 
@@ -81,7 +84,7 @@ for dataset_name in os.listdir(DATASETS_PATH):
                            accuracy,
                            np.average(tpr),
                            np.average(fpr),
-                           precision,
+                           np.average(precision),
                            auc,
                            auc_pr_score,
                            fit_time,
@@ -89,4 +92,7 @@ for dataset_name in os.listdir(DATASETS_PATH):
 
         curr_fold = curr_fold + 1
 
+scores_df = pd.DataFrame(all_scores, columns=SCORES_COLUMNS)
+scores_df.to_csv(f'./results/baseline/{utils.get_experiment_file_name("baseline")}.csv')
 print(all_scores)
+

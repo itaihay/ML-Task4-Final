@@ -1,8 +1,13 @@
 import typing
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
 from sklearn import metrics, preprocessing
+
+
+def get_experiment_file_name(folder_name: str) -> str:
+    return f'{folder_name}-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
 
 
 def auc_pr(y_true, y_pred, num_classes):
