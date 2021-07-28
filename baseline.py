@@ -24,7 +24,9 @@ RANDOM_GRID = {'n_estimators': [int(x) for x in np.linspace(start=200, stop=2000
                'bootstrap': [True, False]}
 
 all_scores = list()
+start_all_run_time = time.time()
 for dataset_name in os.listdir(DATASETS_PATH):
+    print(dataset_name)
     df = pd.read_csv(os.path.join(DATASETS_PATH, dataset_name))
 
     X, y, encoder_y = utils.preprocess_data(df)
@@ -60,7 +62,12 @@ for dataset_name in os.listdir(DATASETS_PATH):
             fpr, tpr, _ = roc_curve(y_test, y_prob[:, 1])
             auc_pr_score = metrics.auc(recall, precision)
         else:
-            auc = roc_auc_score(y_test, y_prob, multi_class='ovo', average='macro')
+            try:
+                auc = roc_auc_score(y_test, y_prob, multi_class='ovo', average='macro')
+            except ValueError as e:
+                print(f"ERROR {dataset_name} - {y_test} - {y_prob}")
+                auc = -1
+
             fpr, tpr, _ = roc_curve(enc.transform(y_test.reshape(-1, 1)).toarray().ravel(), y_prob.ravel())
             auc_pr_score = utils.auc_pr(enc.transform(y_test.reshape(-1, 1)).toarray(), y_prob, len(enc.categories_))
 
@@ -94,5 +101,7 @@ for dataset_name in os.listdir(DATASETS_PATH):
 
 scores_df = pd.DataFrame(all_scores, columns=SCORES_COLUMNS)
 scores_df.to_csv(f'./results/baseline/{utils.get_experiment_file_name("baseline")}.csv')
+end_all_run_time = time.time()
 print(all_scores)
+print(end_all_run_time-start_all_run_time)
 
