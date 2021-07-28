@@ -39,6 +39,9 @@ for dataset_name in os.listdir(DATASETS_PATH):
     curr_fold = 0
     kf = StratifiedKFold(n_splits=10, random_state=10, shuffle=True)
     for train_index, test_index in kf.split(X, y):
+
+        print(f'Dataset: {dataset_name} Fold: {curr_fold}')
+
         for grid_values in ParameterGrid({'train_split_size': TRAIN_SPLIT_SIZES, 'prob_limit': PROB_LIMITS}):
 
             train_split_size = grid_values['train_split_size']
@@ -70,7 +73,7 @@ for dataset_name in os.listdir(DATASETS_PATH):
                                     param_distributions=RANDOM_GRID,
                                     n_iter=10,
                                     cv=3,
-                                    verbose=2,
+                                    verbose=1,
                                     random_state=42,
                                     n_jobs=-1)
 
