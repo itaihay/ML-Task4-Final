@@ -1,3 +1,4 @@
+import ast
 import typing
 from datetime import datetime
 
@@ -41,3 +42,13 @@ def preprocess_data(df: pd.DataFrame) -> typing.Tuple[pd.DataFrame, pd.DataFrame
     y_out = le_y.transform(y)
 
     return X_out, y_out, le_y
+
+
+def get_params_from_string(params: str) -> dict:
+    tmp_df = pd.DataFrame([params], columns=['params'])
+    tmp_df = tmp_df['params'].astype('str')
+    tmp_df = tmp_df.apply(lambda x: ast.literal_eval(x))
+    tmp_df = tmp_df.apply(pd.Series)
+
+    return tmp_df.iloc[0].to_dict()
+
