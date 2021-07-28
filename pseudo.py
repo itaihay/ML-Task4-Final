@@ -14,7 +14,7 @@ import utils
 TRAIN_SPLIT_SIZES = [0.3, 0.4, 0.5, 0.6]
 
 SCORES_COLUMNS = ['dataset_name', 'model', 'fold_n', 'train_split_size', 'best_params', 'accuracy', 'tpr', 'fpr',
-                  'precision', 'auc-roc','auc-pr', 'fit_time_second', '1000_predict_time_seconds']
+                  'precision', 'auc-roc', 'auc-pr', 'fit_time_second', '1000_predict_time_seconds']
 
 DATASETS_PATH = './classification_datasets'
 
@@ -25,7 +25,7 @@ RANDOM_GRID = {'n_estimators': [int(x) for x in np.linspace(start=200, stop=2000
                'min_samples_leaf': [1, 2, 4],
                'bootstrap': [True, False]}
 
-df_all_scores_baseline = pd.read_csv('./results/baseline/baseline-20210728-115238-13035.csv', index_col=0)
+df_all_scores_bsln = pd.read_csv('./results/baseline/baseline-20210728-115238-13035.csv', index_col=0)
 all_scores = list()
 start_all_run_time = time.time()
 for dataset_name in os.listdir(DATASETS_PATH):
@@ -42,9 +42,8 @@ for dataset_name in os.listdir(DATASETS_PATH):
             X_train_tmp, X_test = X.iloc[train_index], X.iloc[test_index]
             y_train_tmp, y_test = y[train_index], y[test_index]
 
-            df_results_baseline = df_all_scores_baseline[df_all_scores_baseline['dataset_name'] == dataset_name]
-            bsln_best_params_str = df_results_baseline.iloc[df_results_baseline['accuracy'].idxmax(axis=1)][
-                'best_params']
+            df_results_bsln = df_all_scores_bsln[df_all_scores_bsln['dataset_name'] == dataset_name].reset_index()
+            bsln_best_params_str = df_results_bsln.iloc[df_results_bsln['accuracy'].idxmax(axis=1)]['best_params']
             bsln_best_params = utils.get_params_from_string(bsln_best_params_str)
             rf_clf = RandomForestClassifier(**bsln_best_params).fit(X_train_tmp, y_train_tmp)
 

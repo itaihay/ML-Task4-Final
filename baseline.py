@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, precision_recall_fscore_support
-from sklearn.model_selection import KFold, RandomizedSearchCV, StratifiedKFold
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 from sklearn.preprocessing import OneHotEncoder
 
 import utils
