@@ -12,7 +12,7 @@ from sklearn.preprocessing import OneHotEncoder
 import utils
 
 PROB_LIMITS = [0.7, 0.8, 0.9, 0.95]
-TRAIN_SPLIT_SIZES = [0.3, 0.4, 0.5, 0.6]
+TRAIN_SPLIT_SIZES = [0.3, 0.4, 0.5]
 
 SCORES_COLUMNS = ['dataset_name', 'model', 'fold_n', 'train_split_size', 'prob_limit',
                   'best_params', 'accuracy', 'tpr', 'fpr', 'precision', 'auc-roc', 'auc-pr', 'fit_time_second',
@@ -71,7 +71,7 @@ for dataset_name in os.listdir(DATASETS_PATH):
 
             rs = RandomizedSearchCV(estimator=rf_clf,
                                     param_distributions=RANDOM_GRID,
-                                    n_iter=10,
+                                    n_iter=8,
                                     cv=3,
                                     verbose=1,
                                     random_state=42,
@@ -132,8 +132,8 @@ for dataset_name in os.listdir(DATASETS_PATH):
 
         curr_fold = curr_fold + 1
 
+print(all_scores)
 scores_df = pd.DataFrame(all_scores, columns=SCORES_COLUMNS)
 scores_df.to_csv(f'./results/improvement/{utils.get_experiment_file_name("improvement")}.csv')
 end_all_run_time = time.time()
-print(all_scores)
 print(end_all_run_time - start_all_run_time)
