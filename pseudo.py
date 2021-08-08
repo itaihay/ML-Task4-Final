@@ -28,25 +28,32 @@ RANDOM_GRID = {'n_estimators': [int(x) for x in np.linspace(start=200, stop=2000
 df_all_scores_bsln = pd.read_csv('./results/baseline/baseline-20210728-115238-13035.csv', index_col=0)
 all_scores = list()
 start_all_run_time = time.time()
+
+# For each dataset
 for dataset_name in os.listdir(DATASETS_PATH):
     print(dataset_name)
     df = pd.read_csv(os.path.join(DATASETS_PATH, dataset_name))
 
     X, y, encoder_y = utils.preprocess_data(df)
 
+    # 10 fold cv
     curr_fold = 0
     kf = StratifiedKFold(n_splits=10, random_state=10, shuffle=True)
     for train_index, test_index in kf.split(X, y):
+
+        # Run though all the split sizes
         for train_split_size in TRAIN_SPLIT_SIZES:
 
             X_train_tmp, X_test = X.iloc[train_index], X.iloc[test_index]
             y_train_tmp, y_test = y[train_index], y[test_index]
 
+            # Fit with best params from baseline
             df_results_bsln = df_all_scores_bsln[df_all_scores_bsln['dataset_name'] == dataset_name].reset_index()
             bsln_best_params_str = df_results_bsln.iloc[df_results_bsln['accuracy'].idxmax(axis=1)]['best_params']
             bsln_best_params = utils.get_params_from_string(bsln_best_params_str)
             rf_clf = RandomForestClassifier(**bsln_best_params).fit(X_train_tmp, y_train_tmp)
 
+            # Split pseudo
             X_train_real, X_train_pseudo, y_train_real, y_train_pseudo = train_test_split(X_train_tmp,
                                                                                           y_train_tmp,
                                                                                           train_size=train_split_size,
@@ -78,6 +85,7 @@ for dataset_name in os.listdir(DATASETS_PATH):
             accuracy = accuracy_score(y_test, y_pred)
             precision, recall, _, _ = precision_recall_fscore_support(y_test, y_pred, warn_for=('precision', 'recall'))
 
+            # If binary
             if len(enc.get_feature_names()) <= 2:
                 auc = roc_auc_score(y_test, y_prob[:, 1])
                 fpr, tpr, _ = roc_curve(y_test, y_prob[:, 1])

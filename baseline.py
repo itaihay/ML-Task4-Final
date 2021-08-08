@@ -25,12 +25,15 @@ RANDOM_GRID = {'n_estimators': [int(x) for x in np.linspace(start=200, stop=2000
 
 all_scores = list()
 start_all_run_time = time.time()
+
+# For each dataset
 for dataset_name in os.listdir(DATASETS_PATH):
     print(dataset_name)
     df = pd.read_csv(os.path.join(DATASETS_PATH, dataset_name))
 
     X, y, encoder_y = utils.preprocess_data(df)
 
+    # 10 fold cv
     curr_fold = 0
     kf = StratifiedKFold(n_splits=10, random_state=10, shuffle=True)
     for train_index, test_index in kf.split(X, y):
@@ -57,6 +60,7 @@ for dataset_name in os.listdir(DATASETS_PATH):
         accuracy = accuracy_score(y_test, y_pred)
         precision, recall, _, _ = precision_recall_fscore_support(y_test, y_pred, warn_for=('precision', 'recall'))
 
+        # If binary
         if len(enc.get_feature_names()) <= 2:
             auc = roc_auc_score(y_test, y_prob[:, 1])
             fpr, tpr, _ = roc_curve(y_test, y_prob[:, 1])
